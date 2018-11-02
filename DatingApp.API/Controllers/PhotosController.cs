@@ -101,8 +101,11 @@ namespace DatingApp.API.Controllers
         public async Task<IActionResult> SetMainPhoto(int userId, int id)
         {
             // Compare id of path, to users id which is in the token
-            if (userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
+            if (userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value)) 
+            {
                 return Unauthorized();
+            }
+                
 
             // Check the photo id matches an id in the repo
             var user = await _repo.GetUser(userId);
