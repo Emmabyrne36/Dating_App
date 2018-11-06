@@ -18,6 +18,8 @@ export class MemberListComponent implements OnInit {
     this.route.data.subscribe(data => {
       this.users = data['users'];
     });
+
+    console.table(this.users);
   }
 
   // loadUsers() {
