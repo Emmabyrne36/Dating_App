@@ -29,8 +29,6 @@ export class MemberListComponent implements OnInit {
     this.userParams.minAge = 18;
     this.userParams.maxAge = 99;
     this.userParams.orderBy = 'lastActive';
-
-    console.table(this.users);
   }
 
   pageChanged(event: any): void {

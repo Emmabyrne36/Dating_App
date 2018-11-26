@@ -94,7 +94,6 @@ namespace DatingApp.API
             services.AddAutoMapper();
             services.AddTransient<Seed>();
             // created once per request withing the current scope
-            services.AddScoped<IAuthRepository, AuthRepository>();
             services.AddScoped<IDatingRepository, DatingRepository>();
             services.AddScoped<LogUserActivity>();
         }
