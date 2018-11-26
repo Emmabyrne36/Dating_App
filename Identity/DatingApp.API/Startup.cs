@@ -90,6 +90,7 @@ namespace DatingApp.API
             // services.BuildServiceProvider().GetService<DataContext>().Database.Migrate(); // applies migrations to db
             services.AddCors();
             services.Configure<CloudinarySettings>(Configuration.GetSection("CloudinarySettings"));
+            Mapper.Reset(); // only use this for development, should really wrap in if statement checking if the environment is development
             services.AddAutoMapper();
             services.AddTransient<Seed>();
             // created once per request withing the current scope
