@@ -45,6 +45,7 @@ namespace DatingApp.API.Data
 
         public async Task<User> GetUser(int id)
         {
+            // Use global query filter to get the images for the user correctly
             var user = await _context.Users.Include(p => p.Photos).FirstOrDefaultAsync(u => u.Id == id);
             return user;
         }
