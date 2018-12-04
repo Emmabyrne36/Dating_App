@@ -39,6 +39,7 @@ namespace DatingApp.API.Data
 
                 foreach (var user in users)
                 {
+                    user.Photos.SingleOrDefault().IsApproved = true; // the photos in the seeded file will be approved
                     _userManager.CreateAsync(user, "password").Wait(); // wait for the async response
                     _userManager.AddToRoleAsync(user, "Member").Wait();
                 }
