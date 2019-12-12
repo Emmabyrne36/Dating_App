@@ -26,7 +26,7 @@ namespace DatingApp.API
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        public Startup (IConfiguration configuration)
         {
             Configuration = configuration;
         }
@@ -34,89 +34,89 @@ namespace DatingApp.API
         public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
-        public void ConfigureServices(IServiceCollection services)
+        public void ConfigureServices (IServiceCollection services)
         {
             // services.AddDbContext<DataContext>(x => x.UseSqlite(Configuration.GetConnectionString("DefaultConnection"))); // edit this to change the db provider
-            services.AddDbContext<DataContext>(x => 
-                x.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"))
-                    .ConfigureWarnings(warnings => warnings.Ignore(CoreEventId.IncludeIgnoredWarning)));
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
-                .AddJsonOptions(opts =>
+            services.AddDbContext<DataContext> (x =>
+                x.UseSqlServer (Configuration.GetConnectionString ("DefaultConnection"))
+                .ConfigureWarnings (warnings => warnings.Ignore (CoreEventId.IncludeIgnoredWarning)));
+            services.AddMvc ().SetCompatibilityVersion (CompatibilityVersion.Version_2_2)
+                .AddJsonOptions (opts =>
                 {
                     opts.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
                 });
-            services.AddCors();
-            services.Configure<CloudinarySettings>(Configuration.GetSection("CloudinarySettings"));
-            services.AddAutoMapper();
-            services.AddTransient<Seed>();
+            services.AddCors ();
+            services.Configure<CloudinarySettings> (Configuration.GetSection ("CloudinarySettings"));
+            services.AddAutoMapper (typeof (DatingRepository).Assembly);
+            services.AddTransient<Seed> ();
             // created once per request withing the current scope
-            services.AddScoped<IAuthRepository, AuthRepository>();
-            services.AddScoped<IDatingRepository, DatingRepository>();
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddJwtBearer(options =>
+            services.AddScoped<IAuthRepository, AuthRepository> ();
+            services.AddScoped<IDatingRepository, DatingRepository> ();
+            services.AddAuthentication (JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer (options =>
                 {
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
-                        ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(Configuration.GetSection("AppSettings:Token").Value)),
-                        ValidateIssuer = false,
-                        ValidateAudience = false
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey (Encoding.ASCII.GetBytes (Configuration.GetSection ("AppSettings:Token").Value)),
+                    ValidateIssuer = false,
+                    ValidateAudience = false
                     };
                 });
-            services.AddScoped<LogUserActivity>();
+            services.AddScoped<LogUserActivity> ();
         }
 
         // This configuration used in development mode
-        public void ConfigureDevelopmentServices(IServiceCollection services)
+        public void ConfigureDevelopmentServices (IServiceCollection services)
         {
-            services.AddDbContext<DataContext>(x => x.UseSqlite(Configuration.GetConnectionString("DefaultConnection"))); // edit this to change the db provider
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
-                .AddJsonOptions(opts =>
+            services.AddDbContext<DataContext> (x => x.UseSqlite (Configuration.GetConnectionString ("DefaultConnection"))); // edit this to change the db provider
+            services.AddMvc ().SetCompatibilityVersion (CompatibilityVersion.Version_2_1)
+                .AddJsonOptions (opts =>
                 {
                     opts.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
                 });
 
             // services.BuildServiceProvider().GetService<DataContext>().Database.Migrate(); // applies migrations to db
-            services.AddCors();
-            services.Configure<CloudinarySettings>(Configuration.GetSection("CloudinarySettings"));
-            services.AddAutoMapper();
-            services.AddTransient<Seed>();
+            services.AddCors ();
+            services.Configure<CloudinarySettings> (Configuration.GetSection ("CloudinarySettings"));
+            services.AddAutoMapper (typeof (DatingRepository).Assembly);
+            services.AddTransient<Seed> ();
             // created once per request withing the current scope
-            services.AddScoped<IAuthRepository, AuthRepository>();
-            services.AddScoped<IDatingRepository, DatingRepository>();
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddJwtBearer(options =>
+            services.AddScoped<IAuthRepository, AuthRepository> ();
+            services.AddScoped<IDatingRepository, DatingRepository> ();
+            services.AddAuthentication (JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer (options =>
                 {
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
-                        ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(Configuration.GetSection("AppSettings:Token").Value)),
-                        ValidateIssuer = false,
-                        ValidateAudience = false
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey (Encoding.ASCII.GetBytes (Configuration.GetSection ("AppSettings:Token").Value)),
+                    ValidateIssuer = false,
+                    ValidateAudience = false
                     };
                 });
-            services.AddScoped<LogUserActivity>();
+            services.AddScoped<LogUserActivity> ();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, Seed seeder)
+        public void Configure (IApplicationBuilder app, IHostingEnvironment env)
         {
-            if (env.IsDevelopment())
+            if (env.IsDevelopment ())
             {
-                app.UseDeveloperExceptionPage();
+                app.UseDeveloperExceptionPage ();
             }
             else
             {
-                app.UseExceptionHandler(builder =>
+                app.UseExceptionHandler (builder =>
                 {
-                    builder.Run(async context =>
+                    builder.Run (async context =>
                     {
-                        context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-                        var error = context.Features.Get<IExceptionHandlerFeature>();
+                        context.Response.StatusCode = (int) HttpStatusCode.InternalServerError;
+                        var error = context.Features.Get<IExceptionHandlerFeature> ();
                         if (error != null)
                         {
-                            context.Response.AddApplicationError(error.Error.Message);
-                            await context.Response.WriteAsync(error.Error.Message);
+                            context.Response.AddApplicationError (error.Error.Message);
+                            await context.Response.WriteAsync (error.Error.Message);
                         }
                     });
                 });
@@ -124,15 +124,15 @@ namespace DatingApp.API
             }
 
             // app.UseHttpsRedirection();
-            // seeder.SeedUsers(); // if users need to be seeded again, just un-comment this
-            app.UseCors(x => x.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
-            app.UseAuthentication();
-            app.UseDefaultFiles(); // looks for a default file eg: index.html
-            app.UseStaticFiles(); // to use the Angular SPA
-            app.UseMvc(routes => {
-                routes.MapSpaFallbackRoute(
+            app.UseCors (x => x.AllowAnyOrigin ().AllowAnyMethod ().AllowAnyHeader ());
+            app.UseAuthentication ();
+            app.UseDefaultFiles (); // looks for a default file eg: index.html
+            app.UseStaticFiles (); // to use the Angular SPA
+            app.UseMvc (routes =>
+            {
+                routes.MapSpaFallbackRoute (
                     name: "spa-fallback",
-                    defaults: new { controller = "Fallback", action = "Index" }
+                    defaults : new { controller = "Fallback", action = "Index" }
                 );
             }); // to configure for Angular routes
         }
