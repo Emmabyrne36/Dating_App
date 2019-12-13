@@ -31,8 +31,8 @@ namespace DatingApp.API
         {
             // services.AddDbContext<DataContext>(x => x.UseSqlite(Configuration.GetConnectionString("DefaultConnection"))); // edit this to change the db provider
             services.AddDbContext<DataContext> (x =>
-                x.UseSqlServer (Configuration.GetConnectionString ("DefaultConnection"))
-                .ConfigureWarnings (warnings => warnings.Ignore (CoreEventId.IncludeIgnoredWarning)));
+                x.UseSqlServer (Configuration.GetConnectionString ("DefaultConnection")));
+            // .ConfigureWarnings (warnings => warnings.Ignore (CoreEventId.IncludeIgnoredWarning)));
 
             services.AddControllers ()
                 .AddNewtonsoftJson (opt =>
