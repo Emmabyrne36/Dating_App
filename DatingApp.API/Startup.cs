@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
+﻿using System.Net;
 using System.Text;
-using System.Threading.Tasks;
 using AutoMapper;
 using DatingApp.API.Data;
 using DatingApp.API.Helpers;
@@ -12,14 +8,11 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 
 namespace DatingApp.API
@@ -40,11 +33,18 @@ namespace DatingApp.API
             services.AddDbContext<DataContext> (x =>
                 x.UseSqlServer (Configuration.GetConnectionString ("DefaultConnection"))
                 .ConfigureWarnings (warnings => warnings.Ignore (CoreEventId.IncludeIgnoredWarning)));
-            services.AddMvc ().SetCompatibilityVersion (CompatibilityVersion.Version_2_2)
-                .AddJsonOptions (opts =>
+
+            services.AddControllers ()
+                .AddNewtonsoftJson (opt =>
                 {
-                    opts.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+                    opt.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
                 });
+
+            // services.AddMvc ().SetCompatibilityVersion (CompatibilityVersion.Version_2_2)
+            //     .AddJsonOptions (opts =>
+            //     {
+            //         opts.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+            //     });
             services.AddCors ();
             services.Configure<CloudinarySettings> (Configuration.GetSection ("CloudinarySettings"));
             services.AddAutoMapper (typeof (DatingRepository).Assembly);
@@ -70,11 +70,17 @@ namespace DatingApp.API
         public void ConfigureDevelopmentServices (IServiceCollection services)
         {
             services.AddDbContext<DataContext> (x => x.UseSqlite (Configuration.GetConnectionString ("DefaultConnection"))); // edit this to change the db provider
-            services.AddMvc ().SetCompatibilityVersion (CompatibilityVersion.Version_2_1)
-                .AddJsonOptions (opts =>
+
+            services.AddControllers ()
+                .AddNewtonsoftJson (opt =>
                 {
-                    opts.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+                    opt.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
                 });
+            // services.AddMvc ().SetCompatibilityVersion (CompatibilityVersion.Version_2_1)
+            //     .AddJsonOptions (opts =>
+            //     {
+            //         opts.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+            //     });
 
             // services.BuildServiceProvider().GetService<DataContext>().Database.Migrate(); // applies migrations to db
             services.AddCors ();
@@ -99,7 +105,7 @@ namespace DatingApp.API
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure (IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure (IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment ())
             {
@@ -124,17 +130,18 @@ namespace DatingApp.API
             }
 
             // app.UseHttpsRedirection();
-            app.UseCors (x => x.AllowAnyOrigin ().AllowAnyMethod ().AllowAnyHeader ());
+            app.UseRouting ();
             app.UseAuthentication ();
+            app.UseAuthorization ();
+            app.UseCors (x => x.AllowAnyOrigin ().AllowAnyMethod ().AllowAnyHeader ());
             app.UseDefaultFiles (); // looks for a default file eg: index.html
             app.UseStaticFiles (); // to use the Angular SPA
-            app.UseMvc (routes =>
+
+            app.UseEndpoints (endpoints =>
             {
-                routes.MapSpaFallbackRoute (
-                    name: "spa-fallback",
-                    defaults : new { controller = "Fallback", action = "Index" }
-                );
-            }); // to configure for Angular routes
+                endpoints.MapControllers ();
+                endpoints.MapFallbackToController ("Index", "Fallback");
+            });
         }
     }
 }

@@ -12,100 +12,99 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DatingApp.API.Controllers
 {
-    [ServiceFilter(typeof(LogUserActivity))] // when any methods in this class are called, the filter will be called
+    [ServiceFilter (typeof (LogUserActivity))] // when any methods in this class are called, the filter will be called
     [Authorize]
-    [Route("api/users/{userId}/[controller]")]
+    [Route ("api/users/{userId}/[controller]")]
     [ApiController]
     public class MessagesController : ControllerBase
     {
         private readonly IDatingRepository _repo;
         private readonly IMapper _mapper;
-        public MessagesController(IDatingRepository repo, IMapper mapper)
+        public MessagesController (IDatingRepository repo, IMapper mapper)
         {
             _mapper = mapper;
             _repo = repo;
         }
 
-        [HttpGet("{id}", Name = "GetMessage")]
-        public async Task<IActionResult> GetMessage(int userId, int id)
+        [HttpGet ("{id}", Name = "GetMessage")]
+        public async Task<IActionResult> GetMessage (int userId, int id)
         {
-            if (userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
-                return Unauthorized();
+            if (userId != int.Parse (User.FindFirst (ClaimTypes.NameIdentifier).Value))
+                return Unauthorized ();
 
-            var messageFromRepo = await _repo.GetMessage(id);
+            var messageFromRepo = await _repo.GetMessage (id);
 
             if (messageFromRepo == null)
-                return NotFound();
+                return NotFound ();
 
-            return Ok(messageFromRepo);
+            return Ok (messageFromRepo);
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetMessagesForUser(int userId, [FromQuery]MessageParams messageParams)
+        public async Task<IActionResult> GetMessagesForUser (int userId, [FromQuery] MessageParams messageParams)
         {
-            if (userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
-                return Unauthorized();
+            if (userId != int.Parse (User.FindFirst (ClaimTypes.NameIdentifier).Value))
+                return Unauthorized ();
 
             messageParams.UserId = userId;
 
-            var messagesFromRepo = await _repo.GetMessagesForUser(messageParams);
+            var messagesFromRepo = await _repo.GetMessagesForUser (messageParams);
 
-            var messages = _mapper.Map<IEnumerable<MessageToReturnDto>>(messagesFromRepo);
+            var messages = _mapper.Map<IEnumerable<MessageToReturnDto>> (messagesFromRepo);
 
-            Response.AddPagination(messagesFromRepo.CurrentPage, messagesFromRepo.PageSize, messagesFromRepo.TotalCount, messagesFromRepo.TotalPages);
+            Response.AddPagination (messagesFromRepo.CurrentPage, messagesFromRepo.PageSize, messagesFromRepo.TotalCount, messagesFromRepo.TotalPages);
 
-            return Ok(messages); // IEnumerable of messages
+            return Ok (messages); // IEnumerable of messages
         }
 
-        [HttpGet("thread/{recipientId}")]
-        public async Task<IActionResult> GetMessageThread(int userId, int recipientId)
+        [HttpGet ("thread/{recipientId}")]
+        public async Task<IActionResult> GetMessageThread (int userId, int recipientId)
         {
-            if (userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
-                return Unauthorized();
+            if (userId != int.Parse (User.FindFirst (ClaimTypes.NameIdentifier).Value))
+                return Unauthorized ();
 
-            var messageFromRepo = await _repo.GetMessageThread(userId, recipientId);
+            var messageFromRepo = await _repo.GetMessageThread (userId, recipientId);
 
-            var messageThread = _mapper.Map<IEnumerable<MessageToReturnDto>>(messageFromRepo);
+            var messageThread = _mapper.Map<IEnumerable<MessageToReturnDto>> (messageFromRepo);
 
-            return Ok(messageThread);
+            return Ok (messageThread);
 
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateMessage(int userId, MessageForCreationDTO messageForCreationDTO)
+        public async Task<IActionResult> CreateMessage (int userId, MessageForCreationDTO messageForCreationDTO)
         {
-            var sender = await _repo.GetUser(userId);
+            var sender = await _repo.GetUser (userId);
 
-            if (sender.Id != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
-                return Unauthorized();
+            if (sender.Id != int.Parse (User.FindFirst (ClaimTypes.NameIdentifier).Value))
+                return Unauthorized ();
 
             messageForCreationDTO.SenderId = userId;
-            var recipient = await _repo.GetUser(messageForCreationDTO.RecipientId);
+            var recipient = await _repo.GetUser (messageForCreationDTO.RecipientId);
 
             if (recipient == null)
-                return BadRequest("Could not find user");
+                return BadRequest ("Could not find user");
 
-            var message = _mapper.Map<Message>(messageForCreationDTO);
+            var message = _mapper.Map<Message> (messageForCreationDTO);
 
-            _repo.Add(message);
+            _repo.Add (message);
 
-            if (await _repo.SaveAll())
+            if (await _repo.SaveAll ())
             {
-                var messageToReturn = _mapper.Map<MessageToReturnDto>(message);
-                return CreatedAtRoute("GetMessage", new { id = message.Id }, messageToReturn);
+                var messageToReturn = _mapper.Map<MessageToReturnDto> (message);
+                return CreatedAtRoute ("GetMessage", new { userId, id = message.Id }, messageToReturn);
             }
 
-
-            throw new System.Exception("Creating the message failed on save");
+            throw new System.Exception ("Creating the message failed on save");
         }
 
-        [HttpPost("{id}")]
-        public async Task<IActionResult> DeleteMessage(int id, int userId)
+        [HttpPost ("{id}")]
+        public async Task<IActionResult> DeleteMessage (int id, int userId)
         {
-            if (userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
-                return Unauthorized();
+            if (userId != int.Parse (User.FindFirst (ClaimTypes.NameIdentifier).Value))
+                return Unauthorized ();
 
-            var messageFromRepo = await _repo.GetMessage(id);
+            var messageFromRepo = await _repo.GetMessage (id);
 
             if (messageFromRepo.SenderId == userId)
                 messageFromRepo.SenderDeleted = true;
@@ -114,32 +113,32 @@ namespace DatingApp.API.Controllers
                 messageFromRepo.RecipientDeleted = true;
 
             if (messageFromRepo.SenderDeleted && messageFromRepo.RecipientDeleted)
-                _repo.Delete(messageFromRepo);
+                _repo.Delete (messageFromRepo);
 
-            if (await _repo.SaveAll())
-                return NoContent();
+            if (await _repo.SaveAll ())
+                return NoContent ();
 
-            throw new System.Exception("Error deleting the message");
+            throw new System.Exception ("Error deleting the message");
 
         }
 
-        [HttpPost("{id}/read")]
-        public async Task<IActionResult> MarkMessageAsRead(int userId, int id)
+        [HttpPost ("{id}/read")]
+        public async Task<IActionResult> MarkMessageAsRead (int userId, int id)
         {
-            if (userId != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))
-                return Unauthorized();
+            if (userId != int.Parse (User.FindFirst (ClaimTypes.NameIdentifier).Value))
+                return Unauthorized ();
 
-            var message = await _repo.GetMessage(id);
+            var message = await _repo.GetMessage (id);
 
             if (message.RecipientId != userId)
-                return Unauthorized();
+                return Unauthorized ();
 
             message.IsRead = true;
             message.DateRead = DateTime.Now;
 
-            await _repo.SaveAll();
+            await _repo.SaveAll ();
 
-            return NoContent();
+            return NoContent ();
         }
 
     }
